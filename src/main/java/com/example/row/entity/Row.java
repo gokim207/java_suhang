@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -19,9 +20,10 @@ public class Row {
 
     private String name;
     private String content;
-    private LocalDateTime dDay;
+    private LocalDate targetDate;
 
     @CreatedDate
     private LocalDateTime createdAt;
 
+    private String recurrence = "NONE";
 }
