@@ -23,5 +23,7 @@ public class RowRequest {
    private String targetDate;
    @Schema(example = "NONE")
     private String recurrence = "NONE";
+    
+    @Schema(hidden = true)
      private String createdAt;
 }

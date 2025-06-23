@@ -27,16 +27,16 @@ public class RowController {
         return rowService.create(dto);
     }
 
-   @PostMapping("update")
+    @PostMapping("update")
     @Operation(summary = "Row 수정", description = "Row 데이터를 수정합니다.")
-    public String update(@RequestBody RowRequest dto) {
-        return rowService.update(dto.getId(),dto);
+    public String update(@RequestParam Long id, @RequestBody RowRequest dto) {
+        return rowService.update(id, dto);
     }
 
     //테스트 용이였어서 주석 처리함
-    // @GetMapping("getAll")
-    // @Operation(summary = "Row 전체 조회", description = "모든 Row 데이터를 조회합니다.")
-    // public List<Row> list() {
-    //     return rowService.findAll();
-    // }
+    //  @GetMapping("getAll")
+    //  @Operation(summary = "Row 전체 조회", description = "모든 Row 데이터를 조회합니다.")
+    //  public List<Row> list() {
+    //      return rowService.findAll();
+    //  }
 }
