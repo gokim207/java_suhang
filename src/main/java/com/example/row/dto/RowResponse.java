@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
-@AllArgsConstructor
 public class RowResponse {
     private Long id;
     private String name;
@@ -17,4 +16,8 @@ public class RowResponse {
     private LocalDate targetDate;
     private LocalDateTime createdAt;
     private Integer dDay;  // 오늘 기준 남은 날짜 (계산된 값)
+    private String content;
+  
+    // 기본 생성자
+    public RowResponse() {}
 }
