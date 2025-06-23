@@ -1,6 +1,7 @@
 package com.example.row.entity;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Generated;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,9 +20,10 @@ public class Row {
 
     private String name;
     private String content;
-    private LocalDateTime dDay;
+    private LocalDateTime targetDate;
 
     @CreatedDate
     private LocalDateTime createdAt;
 
+    private String recurrence = "NONE";
 }

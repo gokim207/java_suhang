@@ -10,4 +10,8 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class RowRequest {
+   private String name;
+   private String content;
+   private String targetDate;
+    private String recurrence = "NONE";
 }
