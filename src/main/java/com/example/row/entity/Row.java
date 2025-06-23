@@ -1,5 +1,6 @@
 package com.example.row.entity;
 
+import com.example.row.dto.RowRequest;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Generated;
@@ -7,7 +8,9 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Entity
 @Getter
@@ -24,6 +27,36 @@ public class Row {
 
     @CreatedDate
     private LocalDateTime createdAt;
-
     private String recurrence = "NONE";
+
+    public Row() {}
+
+    public Row(RowRequest dto) {
+        this.name = dto.getName();
+        this.content = dto.getContent();
+        this.recurrence = dto.getRecurrence();
+        if (dto.getTargetDate() != null && !dto.getTargetDate().isEmpty()) {
+          String dateStr = dto.getTargetDate();
+            if (dateStr.length() == 10) { // "yyyy-MM-dd" 형식
+                this.targetDate = LocalDate.parse(dateStr, DateTimeFormatter.ISO_DATE).atStartOfDay();
+                    } else {
+                this.targetDate = LocalDateTime.parse(dateStr, DateTimeFormatter.ISO_DATE_TIME);
+            }
+        }
+        this.createdAt = LocalDateTime.now();
+    }
+
+    public void updateFromDto(RowRequest dto) {
+        this.name = dto.getName();
+        this.content = dto.getContent();
+        this.recurrence = dto.getRecurrence();
+        if (dto.getTargetDate() != null && !dto.getTargetDate().isEmpty()) {
+            String dateStr = dto.getTargetDate();
+            if (dateStr.length() == 10) { // "yyyy-MM-dd"
+                this.targetDate = LocalDate.parse(dateStr, DateTimeFormatter.ISO_DATE).atStartOfDay();
+            } else {
+                this.targetDate = LocalDateTime.parse(dateStr, DateTimeFormatter.ISO_DATE_TIME);
+            }
+        }
+    }
 }
