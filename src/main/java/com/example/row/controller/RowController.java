@@ -48,8 +48,6 @@ public class RowController {
     //  public List<Row> list() {
     //      return rowService.findAll();
     //  }
-    @Autowired
-    private RowService rowService;
 
     @GetMapping("/event")
     public ResponseEntity<List<RowResponse>> getRow(@RequestParam String sort) {
