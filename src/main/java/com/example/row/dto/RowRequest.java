@@ -20,12 +20,11 @@ public class RowRequest {
     private Long id;
 
     private String name;
-   private String content;
-   private LocalDate targetDate;
+    private String content;
+    private LocalDate targetDate;
+    private boolean isCompleted = false;
 
-   @Schema(example = "NONE")
-    private String recurrence = "NONE";
-    
+
     @Schema(hidden = true)
      private LocalDateTime createdAt;
 }

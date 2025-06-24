@@ -4,6 +4,7 @@ import com.example.row.dto.RowRequest;
 import com.example.row.dto.RowResponse;
 import com.example.row.entity.Row;
 import com.example.row.repository.RowRepository;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -87,9 +88,28 @@ public class RowService {
 
     public void delete(Long id) {
         if (!rowRepository.existsById(id)) {
-        throw new IllegalArgumentException("Row를 찾을 수 없습니다. ID: " + id);
+            throw new IllegalArgumentException("Row를 찾을 수 없습니다. ID: " + id);
         }
         rowRepository.deleteById(id);
     }
 
+    public void markEventAsCompleted(Long id) {
+        Row row = rowRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("해당 이벤트를 찾을 수 없습니다."));
+
+        if (row.isCompleted()) {
+            throw new IllegalStateException("이미 완료된 이벤트입니다.");
+        }
+
+        row.setCompleted(true);
+        rowRepository.save(row);
+    }
+
+    public List<RowResponse> findByCompletionStatus(boolean isCompleted) {
+        List<Row> events = rowRepository.findByIsCompleted(isCompleted);
+
+        return events.stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
 }

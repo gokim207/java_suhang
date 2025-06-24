@@ -37,6 +37,7 @@ public class RowController {
     }
 
     @GetMapping("/sortedBy")
+    @Operation(summary = "Row 정렬(오름차순 / 내림차순)", description = "asc/desc로 정렬합니다.")
     public ResponseEntity<List<RowResponse>> getRow(@RequestParam String sort) {
         List<RowResponse> events;
 
@@ -48,6 +49,28 @@ public class RowController {
 
         return ResponseEntity.ok(events);
     }
+
+    @PutMapping("/{id}/complete")
+    @Operation(summary = "Row 완료", description = "Row 데이터를 완료합니다.")
+    public ResponseEntity<String> completeEvent(@PathVariable Long id) {
+        rowService.markEventAsCompleted(id);
+        return ResponseEntity.ok("이벤트가 완료 처리되었습니다.");
+    }
+
+    @GetMapping("/completed")
+    @Operation(summary = "Row 완료 전체 조회", description = "모든 완료된 Row 데이터를 조회합니다.")
+    public ResponseEntity<List<RowResponse>> getCompletedEvents() {
+        List<RowResponse> events = rowService.findByCompletionStatus(true);
+        return ResponseEntity.ok(events);
+    }
+
+    @GetMapping("/ongoing")
+    @Operation(summary = "Row 진행중 전체 조회", description = "모든 진행중 Row 데이터를 생성합니다.")
+    public ResponseEntity<List<RowResponse>> getOngoingEvents() {
+        List<RowResponse> events = rowService.findByCompletionStatus(false);
+        return ResponseEntity.ok(events);
+    }
+
     @GetMapping("/all")
     @Operation(summary = "전체 조회", description = "모든 Row 데이터를 조회합니다.")
     public ResponseEntity<List<RowResponse>> getAllRows() {
