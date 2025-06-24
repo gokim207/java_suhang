@@ -1,6 +1,7 @@
 package com.example.row.controller;
 import com.example.row.dto.RowRequest;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -10,7 +11,6 @@ import com.example.row.service.RowService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;
 import com.example.row.dto.RowResponse;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -18,11 +18,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @Slf4j
+@RequiredArgsConstructor
 @RequestMapping("/event")
 @Tag(name = "Row API", description = "Row 관련 API")
 public class RowController {
-    @Autowired
-    private RowService rowService;
+    private final RowService rowService;
 
     @PostMapping("create")
     @Operation(summary = "Row 생성", description = "Row 데이터를 생성합니다.")
