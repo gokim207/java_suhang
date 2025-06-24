@@ -23,7 +23,7 @@ public class Row {
 
     private String name;
     private String content;
-    private LocalDateTime targetDate;
+    private LocalDate targetDate;
 
     @CreatedDate
     private LocalDateTime createdAt;
@@ -35,12 +35,12 @@ public class Row {
         this.name = dto.getName();
         this.content = dto.getContent();
         this.recurrence = dto.getRecurrence();
-        if (dto.getTargetDate() != null && !dto.getTargetDate().isEmpty()) {
-          String dateStr = dto.getTargetDate();
+        if (dto.getTargetDate() != null) {
+          String dateStr = String.valueOf(dto.getTargetDate());
             if (dateStr.length() == 10) { // "yyyy-MM-dd" 형식
-                this.targetDate = LocalDate.parse(dateStr, DateTimeFormatter.ISO_DATE).atStartOfDay();
+                this.targetDate = LocalDate.from(LocalDate.parse(dateStr, DateTimeFormatter.ISO_DATE).atStartOfDay());
                     } else {
-                this.targetDate = LocalDateTime.parse(dateStr, DateTimeFormatter.ISO_DATE_TIME);
+                this.targetDate = LocalDate.from(LocalDateTime.parse(dateStr, DateTimeFormatter.ISO_DATE_TIME));
             }
         }
         this.createdAt = LocalDateTime.now();
@@ -50,12 +50,12 @@ public class Row {
         this.name = dto.getName();
         this.content = dto.getContent();
         this.recurrence = dto.getRecurrence();
-        if (dto.getTargetDate() != null && !dto.getTargetDate().isEmpty()) {
-            String dateStr = dto.getTargetDate();
+        if (dto.getTargetDate() != null) {
+            String dateStr = String.valueOf(dto.getTargetDate());
             if (dateStr.length() == 10) { // "yyyy-MM-dd"
-                this.targetDate = LocalDate.parse(dateStr, DateTimeFormatter.ISO_DATE).atStartOfDay();
+                this.targetDate = LocalDate.from(LocalDate.parse(dateStr, DateTimeFormatter.ISO_DATE).atStartOfDay());
             } else {
-                this.targetDate = LocalDateTime.parse(dateStr, DateTimeFormatter.ISO_DATE_TIME);
+                this.targetDate = LocalDate.from(LocalDateTime.parse(dateStr, DateTimeFormatter.ISO_DATE_TIME));
             }
         }
     }

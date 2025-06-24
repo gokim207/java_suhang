@@ -8,6 +8,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @AllArgsConstructor
@@ -20,10 +23,10 @@ public class RowRequest {
 
     private String name;
    private String content;
-   private String targetDate;
+   private LocalDate targetDate;
    @Schema(example = "NONE")
     private String recurrence = "NONE";
     
     @Schema(hidden = true)
-     private String createdAt;
+     private LocalDateTime createdAt;
 }

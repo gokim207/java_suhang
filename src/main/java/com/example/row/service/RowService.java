@@ -68,7 +68,7 @@ public class RowService {
         response.setId(row.getId());
         response.setName(row.getName());
         response.setContent(row.getContent());
-        response.setTargetDate(LocalDate.from(row.getTargetDate()));
+        response.setTargetDate(LocalDate.from(LocalDate.from(row.getTargetDate()).atStartOfDay()));
         response.setCreatedAt(row.getCreatedAt());
         response.setDDay(dDay);
 

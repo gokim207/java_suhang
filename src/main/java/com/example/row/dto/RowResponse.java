@@ -18,10 +18,7 @@ public class RowResponse {
     private LocalDateTime createdAt;
     private Integer dDay;  // 오늘 기준 남은 날짜 (계산된 값)
 
-    public RowResponse() {
+    public RowResponse() {}
 
-    }
-
-    public void setContent(String content) {
-    }
+    public void setContent(String content) {}
 }

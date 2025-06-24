@@ -36,7 +36,7 @@ public class RowController {
         return rowService.create(dto);
     }
 
-    @PostMapping("update")
+    @PatchMapping("update")
     @Operation(summary = "Row 수정", description = "Row 데이터를 수정합니다.")
     public String update(@RequestParam Long id, @RequestBody RowRequest dto) {
         return rowService.update(id, dto);
