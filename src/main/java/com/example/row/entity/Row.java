@@ -2,8 +2,6 @@ package com.example.row.entity;
 
 import com.example.row.dto.RowRequest;
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Generated;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
