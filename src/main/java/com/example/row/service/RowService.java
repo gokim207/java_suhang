@@ -63,7 +63,7 @@ public class RowService {
     private RowResponse toResponse(Row row) {
         int dDay = (int) ChronoUnit.DAYS.between(LocalDate.now(), row.getTargetDate());
 
-        RowResponse response = new RowResponse();
+        RowResponse response = new RowResponse(row);
         response.setId(row.getId());
         response.setName(row.getName());
         response.setContent(row.getContent());
@@ -73,4 +73,23 @@ public class RowService {
 
         return response;
     }
+    public List<RowResponse> findAll() {
+        List<Row> entities = rowRepository.findAll();
+        return entities.stream().map(this::toResponse).collect(Collectors.toList());
+    }
+
+    public RowResponse findById(Long id) {
+        Row row = rowRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Row를 찾을 수 없습니다. ID: " + id));
+        return toResponse(row);
+    }
+
+
+    public void delete(Long id) {
+        if (!rowRepository.existsById(id)) {
+        throw new IllegalArgumentException("Row를 찾을 수 없습니다. ID: " + id);
+        }
+        rowRepository.deleteById(id);
+    }
+
 }
