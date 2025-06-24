@@ -74,10 +74,8 @@ public class RowService {
         return response;
     }
     public List<RowResponse> findAll() {
-        return rowRepository.findAll()
-            .stream()
-            .map(row -> new RowResponse(row))
-            .collect(Collectors.toList());
+        List<Row> rows = rowRepository.findAll();
+        return rows.stream().map(RowResponse::fromEntity).collect(Collectors.toList());
     }
 
     public RowResponse findById(Long id) {
