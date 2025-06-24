@@ -48,4 +48,24 @@ public class RowController {
 
         return ResponseEntity.ok(events);
     }
+    @GetMapping("/all")
+    @Operation(summary = "전체 조회", description = "모든 Row 데이터를 조회합니다.")
+    public ResponseEntity<List<RowResponse>> getAllRows() {
+        List<RowResponse> rows = rowService.findAll();
+        return ResponseEntity.ok(rows);
+    }
+
+    @GetMapping("/{id}")
+    @Operation(summary = "ID로 조회", description = "특정 ID에 해당하는 Row 데이터를 조회합니다.")
+    public ResponseEntity<RowResponse> getRowById(@PathVariable Long id) {
+        RowResponse row = rowService.findById(id);
+        return ResponseEntity.ok(row);
+    }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Row 삭제", description = "특정 ID에 해당하는 Row 데이터를 삭제합니다.")
+    public ResponseEntity<String> deleteRow(@PathVariable Long id) {
+        rowService.delete(id);
+        return ResponseEntity.ok("Row 삭제 완료");
+    }
 }

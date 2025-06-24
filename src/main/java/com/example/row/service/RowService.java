@@ -73,4 +73,24 @@ public class RowService {
 
         return response;
     }
+    public List<RowResponse> findAll() {
+        return rowRepository.findAll()
+            .stream()
+            .map(row -> new RowResponse(row))
+            .collect(Collectors.toList());
+    }
+
+    public RowResponse findById(Long id) {
+        Row row = rowRepository.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Row를 찾을 수 없습니다. ID: " + id));
+        return new RowResponse(row);
+    }
+
+    public void delete(Long id) {
+        if (!rowRepository.existsById(id)) {
+        throw new IllegalArgumentException("Row를 찾을 수 없습니다. ID: " + id);
+        }
+        rowRepository.deleteById(id);
+    }
+
 }
