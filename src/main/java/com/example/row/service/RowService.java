@@ -53,13 +53,13 @@ public class RowService {
                 .collect(Collectors.toList());
     }
 
-    public List<RowResponse> findAll() {
-        List<Row> events = rowRepository.findAll();
-
-        return events.stream()
-                .map(this::toResponse)
-                .collect(Collectors.toList());
-    }
+    public List<RowResponse> findAllOrderByDDayDesc() {
+            List<Row> events = rowRepository.findAll();
+            return events.stream()
+                    .sorted(Comparator.comparing((Row event) -> ChronoUnit.DAYS.between(LocalDate.now(), event.getTargetDate())).reversed())
+                    .map(this::toResponse)
+                    .collect(Collectors.toList());
+        }
 
     private RowResponse toResponse(Row row) {
         int dDay = (int) ChronoUnit.DAYS.between(LocalDate.now(), row.getTargetDate());

@@ -28,7 +28,8 @@ import java.util.List;
 @RequestMapping("/")
 @Tag(name = "Row API", description = "Row 관련 API")
 public class RowController {
-    private final RowService rowService;
+    @Autowired
+    private RowService rowService;
 
     @PostMapping("create")
     @Operation(summary = "Row 생성", description = "Row 데이터를 생성합니다.")
@@ -53,10 +54,10 @@ public class RowController {
     public ResponseEntity<List<RowResponse>> getRow(@RequestParam String sort) {
         List<RowResponse> events;
 
-        if ("dday".equalsIgnoreCase(sort)) {
+        if ("asc".equalsIgnoreCase(sort)) { // dDay 기준 내림차순 또는 오름차순
             events = rowService.findAllOrderByDDayAsc();
         } else {
-            events = rowService.findAll(); // 기본 정렬 또는 전체 조회
+            events = rowService.findAllOrderByDDayDesc();
         }
 
         return ResponseEntity.ok(events);
