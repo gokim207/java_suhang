@@ -25,7 +25,7 @@ import java.util.List;
 @RestController
 @Slf4j
 @RequiredArgsConstructor
-@RequestMapping("/")
+@RequestMapping("/event")
 @Tag(name = "Row API", description = "Row 관련 API")
 public class RowController {
     @Autowired
@@ -43,14 +43,7 @@ public class RowController {
         return rowService.update(id, dto);
     }
 
-    //테스트 용이였어서 주석 처리함
-    //  @GetMapping("getAll")
-    //  @Operation(summary = "Row 전체 조회", description = "모든 Row 데이터를 조회합니다.")
-    //  public List<Row> list() {
-    //      return rowService.findAll();
-    //  }
-
-    @GetMapping("/event")
+    @GetMapping("/sortedBy")
     public ResponseEntity<List<RowResponse>> getRow(@RequestParam String sort) {
         List<RowResponse> events;
 
