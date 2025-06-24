@@ -37,7 +37,7 @@ public class Row {
           String dateStr = String.valueOf(dto.getTargetDate());
             if (dateStr.length() == 10) { // "yyyy-MM-dd" 형식
                 this.targetDate = LocalDate.from(LocalDate.parse(dateStr, DateTimeFormatter.ISO_DATE).atStartOfDay());
-                    } else {
+            } else {
                 this.targetDate = LocalDate.from(LocalDateTime.parse(dateStr, DateTimeFormatter.ISO_DATE_TIME));
             }
         }
