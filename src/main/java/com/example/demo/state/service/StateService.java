@@ -4,6 +4,7 @@ import com.example.demo.state.domain.State;
 import com.example.demo.state.dto.request.StateCreateReq;
 import com.example.demo.state.dto.request.StateUpdateReq;
 import com.example.demo.state.repository.StateJpaRepo;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
