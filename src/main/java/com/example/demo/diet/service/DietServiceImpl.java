@@ -21,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -216,11 +217,17 @@ public class DietServiceImpl implements DietService {
      */
     private DietDetailResponse convertToDietDetailResponse(Dist diet) {
         return DietDetailResponse.builder()
-                .createDate(diet.getCreatedAt().format(DATE_FORMATTER))
-                .updatedDate(diet.getUpdatedAt().format(DATE_FORMATTER))
+                .createDate(diet.getCreatedAt() != null
+                        ? diet.getCreatedAt().format(DATE_FORMATTER)
+                        : LocalDateTime.now().format(DATE_FORMATTER))
+                .updatedDate(diet.getUpdatedAt() != null
+                        ? diet.getUpdatedAt().format(DATE_FORMATTER)
+                        : LocalDateTime.now().format(DATE_FORMATTER))
                 .stateName(diet.getDietStateName())
                 .request(diet.getRequest())
                 .content(diet.getContent())
                 .build();
     }
+
+
 }
