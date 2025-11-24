@@ -4,16 +4,14 @@ import com.example.demo.state.domain.State;
 import com.example.demo.state.dto.request.StateCreateReq;
 import com.example.demo.state.dto.request.StateUpdateReq;
 import com.example.demo.state.repository.StateJpaRepo;
-//import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
@@ -26,6 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
+@Sql("classpath:/insert-state.sql")
 class StateControllerTest {
 
     @Autowired
@@ -40,31 +39,6 @@ class StateControllerTest {
     @Autowired
     private EntityManager entityManager;
 
-    private State testState1;
-    private State testState2;
-
-    @BeforeEach
-    void setUp() {
-        stateJpaRepo.deleteAll();
-
-        testState1 = State.builder()
-                .name("진행중")
-                .description("현재 진행 중인 상태")
-                .standard("진행률 50% 이상")
-                .isMain(true)
-                .build();
-
-        testState2 = State.builder()
-                .name("완료")
-                .description("작업이 완료된 상태")
-                .standard("진행률 100%")
-                .isMain(false)
-                .build();
-
-        testState1 = stateJpaRepo.save(testState1);
-        testState2 = stateJpaRepo.save(testState2);
-    }
-
     @Test
     @DisplayName("전체 상태 조회 - 성공")
     void getAllStates_Success() throws Exception {
@@ -72,7 +46,7 @@ class StateControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$.length()").value(7))
                 .andExpect(jsonPath("$[0].name").exists())
                 .andExpect(jsonPath("$[0].description").exists())
                 .andExpect(jsonPath("$[0].standard").exists())
@@ -82,8 +56,19 @@ class StateControllerTest {
     @Test
     @DisplayName("메인 상태 변경 - 성공")
     void updateMainState_Success() throws Exception {
+        // '체중 감량 집중'이 현재 메인 상태 (isMain=true)
+        State mainState = stateJpaRepo.findAll().stream()
+                .filter(State::isMain)
+                .findFirst()
+                .orElseThrow();
+
+        State targetState = stateJpaRepo.findAll().stream()
+                .filter(s -> !s.isMain())
+                .findFirst()
+                .orElseThrow();
+
         mockMvc.perform(put("/state/update/main")
-                        .param("stateId", testState2.getId().toString()))
+                        .param("stateId", targetState.getId().toString()))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().string("성공적으로 상태가 변경되었습니다."));
@@ -91,11 +76,11 @@ class StateControllerTest {
         entityManager.flush();
         entityManager.clear();
 
-        State updatedState1 = stateJpaRepo.findById(testState1.getId()).orElseThrow();
-        State updatedState2 = stateJpaRepo.findById(testState2.getId()).orElseThrow();
+        State updatedMainState = stateJpaRepo.findById(mainState.getId()).orElseThrow();
+        State updatedTargetState = stateJpaRepo.findById(targetState.getId()).orElseThrow();
 
-        assertThat(updatedState1.isMain()).isFalse();
-        assertThat(updatedState2.isMain()).isTrue();
+        assertThat(updatedMainState.isMain()).isFalse();
+        assertThat(updatedTargetState.isMain()).isTrue();
     }
 
     @Test
@@ -111,11 +96,13 @@ class StateControllerTest {
     @Test
     @DisplayName("상태 수정 - 성공")
     void updateState_Success() throws Exception {
+        State existingState = stateJpaRepo.findAll().get(0);
+
         StateUpdateReq updateReq = new StateUpdateReq(
-                testState1.getId(),
-                "대기중",
-                "대기 상태",
-                "진행률 0%"
+                existingState.getId(),
+                "수정된 상태",
+                "수정된 설명",
+                "수정된 기준"
         );
 
         mockMvc.perform(put("/state/update")
@@ -125,10 +112,10 @@ class StateControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string("성공적으로 저장되었습니다."));
 
-        State updatedState = stateJpaRepo.findById(testState1.getId()).orElseThrow();
-        assertThat(updatedState.getName()).isEqualTo("대기중");
-        assertThat(updatedState.getDescription()).isEqualTo("대기 상태");
-        assertThat(updatedState.getStandard()).isEqualTo("진행률 0%");
+        State updatedState = stateJpaRepo.findById(existingState.getId()).orElseThrow();
+        assertThat(updatedState.getName()).isEqualTo("수정된 상태");
+        assertThat(updatedState.getDescription()).isEqualTo("수정된 설명");
+        assertThat(updatedState.getStandard()).isEqualTo("수정된 기준");
     }
 
     @Test
@@ -152,13 +139,18 @@ class StateControllerTest {
     @Test
     @DisplayName("상태 삭제 - 성공")
     void deleteState_Success() throws Exception {
+        State stateToDelete = stateJpaRepo.findAll().stream()
+                .filter(s -> !s.isMain())
+                .findFirst()
+                .orElseThrow();
+
         mockMvc.perform(delete("/state/delete")
-                        .param("stateId", testState1.getId().toString()))
+                        .param("stateId", stateToDelete.getId().toString()))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().string("성공적으로 삭제했습니다."));
 
-        assertThat(stateJpaRepo.findById(testState1.getId())).isEmpty();
+        assertThat(stateJpaRepo.findById(stateToDelete.getId())).isEmpty();
     }
 
     @Test
@@ -188,7 +180,7 @@ class StateControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string("성공적으로 생성되었습니다."));
 
-        assertThat(stateJpaRepo.findAll()).hasSize(3);
+        assertThat(stateJpaRepo.findAll()).hasSize(8);
         assertThat(stateJpaRepo.findAll())
                 .extracting("name")
                 .contains("보류");
