@@ -1,25 +1,19 @@
 package com.example.demo.diet.service;
 
 import com.example.demo.diet.dto.exception.DietAIException;
-import org.springframework.beans.factory.annotation.Value;
+import dev.failsafe.*;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+
+import dev.failsafe.function.CheckedSupplier;
 import org.springframework.web.client.RestTemplate;
 
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
+import java.time.Duration;
+import java.util.*;
+import java.util.concurrent.Callable;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-
-
-/**
- * Google Gemini API를 사용한 식단 추천 서비스
- */
 @Slf4j
 @Service
 public class GeminiService {
@@ -30,12 +24,38 @@ public class GeminiService {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
+    /** Failsafe 정책 */
+    private final RetryPolicy<Object> retryPolicy;
+    private final CircuitBreaker<Object> circuitBreaker;
+    private final Timeout<Object> timeout;
+
     public GeminiService(@Value("${gemini.api-key}") String apiKey) {
         this.GEMINI_API_KEY = apiKey;
-        this.GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/"
-                + GEMINI_MODEL + ":generateContent?key=" + GEMINI_API_KEY;
-    }
+        this.GEMINI_API_URL =
+                "https://generativelanguage.googleapis.com/v1beta/models/"
+                        + GEMINI_MODEL + ":generateContent?key=" + GEMINI_API_KEY;
 
+        // Retry: 최대 3번 재시도
+        this.retryPolicy = RetryPolicy.builder()
+                .handle(Exception.class)
+                .withDelay(Duration.ofMillis(500))
+                .withMaxRetries(3)
+                .onRetry(e -> log.warn("재시도 중... {}", e.getLastException().getMessage()))
+                .build();
+
+        // CircuitBreaker: 5번 연속 실패 시 30초 오픈
+        this.circuitBreaker = CircuitBreaker.builder()
+                .handle(Exception.class)
+                .withFailureThreshold(5, 5)
+                .withSuccessThreshold(3)
+                .withDelay(Duration.ofSeconds(30))
+                .onOpen(event -> log.warn("CircuitBreaker OPEN"))
+                .onClose(event -> log.info("CircuitBreaker CLOSE"))
+                .build();
+
+        // Timeout: 6초 (이벤트는 호출 시 처리)
+        this.timeout = Timeout.of(Duration.ofSeconds(6));
+    }
 
     /**
      * 1단계: 식재료 이름 추천
@@ -74,21 +94,19 @@ public class GeminiService {
             - Diet recommendation range: %s
             
             Your task:
-            1. Recommend **only one core ingredient** that best matches the user's situation and preferences.
-            2. The ingredient should be realistic and typically used in meals fitting the provided context.
-            3. Output format **must be strictly in Korean**, containing only the ingredient name (no brackets, no extra words).
-            4. Do not include any explanations, punctuation, or numbering — **return only the ingredient name**.
+            1. Recommend only one core ingredient.
+            2. Output must be strictly in Korean.
+            3. Only the ingredient name.
             """,
                 userFoodCategories, userFoodTypes, userGender, userAge,
                 userStateName, userStateDescription, userStateStandard,
-                additionalRequests, dietRecommendationRange
-        );
+                additionalRequests, dietRecommendationRange);
 
         return callGeminiAPI(prompt);
     }
 
     /**
-     * 2단계: 식단 추천 (Markdown 형식)
+     * 2단계: 식단 추천
      */
     public String getDietRecommendation(
             String userFoodCategories,
@@ -164,26 +182,25 @@ public class GeminiService {
     }
 
     /**
-     * Gemini API 호출 (REST API 방식)
+     * Gemini API 호출
+     * - Failsafe v3 기반: Retry + CircuitBreaker + Timeout 적용
      */
     private String callGeminiAPI(String prompt) {
-        try {
-            // 요청 본문 생성
-            Map<String, Object> requestBody = new HashMap<>();
-            Map<String, Object> content = new HashMap<>();
-            Map<String, String> part = new HashMap<>();
+        // 요청 Body
+        Map<String, Object> requestBody = new HashMap<>();
+        Map<String, Object> content = new HashMap<>();
+        Map<String, String> part = new HashMap<>();
+        part.put("text", prompt);
+        content.put("parts", List.of(part));
+        requestBody.put("contents", List.of(content));
 
-            part.put("text", prompt);
-            content.put("parts", List.of(part));
-            requestBody.put("contents", List.of(content));
+        // HTTP 설정
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
 
-            // HTTP 헤더 설정
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-
-            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
-
-            // API 호출
+        // 핵심 API 호출
+        CheckedSupplier<String> apiCall = () -> {
             ResponseEntity<Map> response = restTemplate.exchange(
                     GEMINI_API_URL,
                     HttpMethod.POST,
@@ -191,28 +208,32 @@ public class GeminiService {
                     Map.class
             );
 
-            // 응답 파싱
-            Map<String, Object> responseBody = response.getBody();
-            if (responseBody == null) {
-                throw new DietAIException("Gemini API 응답이 비어있습니다.");
-            }
+            Map<String, Object> body = response.getBody();
+            if (body == null) throw new DietAIException("Gemini API 응답이 null");
 
-            List<Map<String, Object>> candidates = (List<Map<String, Object>>) responseBody.get("candidates");
-            if (candidates == null || candidates.isEmpty()) {
-                throw new DietAIException("Gemini API 응답에 candidates가 없습니다.");
-            }
+            List<Map<String, Object>> candidates = (List<Map<String, Object>>) body.get("candidates");
+            if (candidates == null || candidates.isEmpty())
+                throw new DietAIException("Gemini API candidates 비어 있음");
 
-            Map<String, Object> firstCandidate = candidates.get(0);
-            Map<String, Object> contentMap = (Map<String, Object>) firstCandidate.get("content");
+            Map<String, Object> first = candidates.get(0);
+            Map<String, Object> contentMap = (Map<String, Object>) first.get("content");
             List<Map<String, Object>> parts = (List<Map<String, Object>>) contentMap.get("parts");
-            String text = (String) parts.get(0).get("text");
 
-            log.info("Gemini API 응답 성공: {}", text);
-            return text;
+            return (String) parts.get(0).get("text");
+        };
+
+        try {
+            // Failsafe 적용 (Timeout + CircuitBreaker + Retry)
+            return Failsafe.with(timeout, circuitBreaker, retryPolicy)
+                    .get(apiCall);  // 실패하면 예외 발생
+
+        } catch (dev.failsafe.TimeoutExceededException e) {
+            log.error("Timeout 발생", e);
+            throw new DietAIException("Timeout 발생", e);
 
         } catch (Exception e) {
             log.error("Gemini API 호출 실패", e);
-            throw new DietAIException("AI 호출 중 오류 발생: " + e.getMessage());
+            throw new DietAIException("AI 호출 오류: " + e.getMessage(), e);
         }
     }
 }
