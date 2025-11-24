@@ -35,3 +35,6 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### 환경병수 유출 방지용 ###
+src/main/resources/application.yml

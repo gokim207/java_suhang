@@ -1,6 +1,6 @@
-package com.example.demo.dto.request;
+package com.example.demo.state.dto.request;
 
-import com.example.demo.domain.State;
+import com.example.demo.state.domain.State;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

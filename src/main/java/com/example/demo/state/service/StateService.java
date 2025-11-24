@@ -1,9 +1,9 @@
-package com.example.demo.service;
+package com.example.demo.state.service;
 
-import com.example.demo.domain.State;
-import com.example.demo.dto.request.StateCreateReq;
-import com.example.demo.dto.request.StateUpdateReq;
-import com.example.demo.repository.StateJpaRepo;
+import com.example.demo.state.domain.State;
+import com.example.demo.state.dto.request.StateCreateReq;
+import com.example.demo.state.dto.request.StateUpdateReq;
+import com.example.demo.state.repository.StateJpaRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

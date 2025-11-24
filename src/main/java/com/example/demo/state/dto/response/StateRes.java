@@ -1,4 +1,4 @@
-package com.example.demo.dto.response;
+package com.example.demo.state.dto.response;
 
 import lombok.Getter;
 

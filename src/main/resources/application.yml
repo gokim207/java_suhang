@@ -16,3 +16,6 @@ datasource:
 h2:
   console:
     enabled: true
+
+gemini:
+  api-key: gen-lang-client-0262587688

@@ -1,10 +1,12 @@
-package com.example.demo.repository;
+package com.example.demo.state.repository;
 
-import com.example.demo.domain.State;
+import com.example.demo.state.domain.State;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+
+import java.util.Optional;
 
 public interface StateJpaRepo extends JpaRepository<State, Long> {
     @Modifying
@@ -18,4 +20,6 @@ public interface StateJpaRepo extends JpaRepository<State, Long> {
             "SET s.isMain = :isMain " +
             "WHERE s.id = :id")
     void updateIsMainById(@Param("id") Long id, @Param("isMain") boolean isMain);
+
+    Optional<State> findById(Long id);
 }

@@ -1,9 +1,9 @@
-package com.example.demo.controller;
+package com.example.demo.state.controller;
 
-import com.example.demo.domain.State;
-import com.example.demo.dto.request.StateCreateReq;
-import com.example.demo.dto.request.StateUpdateReq;
-import com.example.demo.service.StateService;
+import com.example.demo.state.domain.State;
+import com.example.demo.state.dto.request.StateCreateReq;
+import com.example.demo.state.dto.request.StateUpdateReq;
+import com.example.demo.state.service.StateService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -36,7 +36,7 @@ public class StateController {
         return ResponseEntity.ok("성공적으로 저장되었습니다.");
     }
 
-    @DeleteMapping
+    @DeleteMapping("/delete")
     public ResponseEntity<String> deleteState(@RequestParam Long stateId) {
         stateService.deleteState(stateId);
 
