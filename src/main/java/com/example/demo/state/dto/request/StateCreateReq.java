@@ -1,6 +1,7 @@
 package com.example.demo.state.dto.request;
 
 import com.example.demo.state.domain.State;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,6 +13,8 @@ public class StateCreateReq {
     private String stateName;
     private String stateDescription;
     private String stateStandard;
+
+    @JsonProperty("isMain")
     private boolean isMain;
 
     public State from() {
