@@ -1,28 +1,23 @@
 package com.example.demo.diet.service;
 
-import com.example.demo.diet.domain.Dist;
-import com.example.demo.diet.domain.enums.SortOrder;
-import com.example.demo.diet.dto.exception.DietNotFoundException;
-import com.example.demo.diet.dto.exception.InvalidDietRequestException;
-import com.example.demo.diet.dto.request.DietDetailRequest;
-import com.example.demo.diet.dto.request.DietListRequest;
-import com.example.demo.diet.dto.request.DietRecommendationRequest;
-import com.example.demo.diet.dto.response.DietDetailResponse;
-import com.example.demo.diet.dto.response.DietListResponse;
-import com.example.demo.diet.dto.response.DietRecommendationResponse;
-import com.example.demo.diet.repository.DietJpaRepo;
-import com.example.demo.state.domain.State;
-import com.example.demo.state.repository.StateJpaRepo;
+import com.example.demo.domain.diet.domain.Dist;
+import com.example.demo.domain.diet.dto.request.DietListRequest;
+import com.example.demo.domain.diet.dto.request.DietRecommendationRequest;
+import com.example.demo.domain.diet.dto.response.DietListResponse;
+import com.example.demo.domain.diet.dto.response.DietRecommendationResponse;
+import com.example.demo.domain.diet.repository.DietJpaRepo;
+import com.example.demo.domain.diet.service.DietServiceImpl;
+import com.example.demo.domain.diet.service.GeminiService;
+import com.example.demo.domain.state.domain.State;
+import com.example.demo.domain.state.repository.StateJpaRepo;
+import com.example.demo.global.exception.InvalidDietRequestException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.test.context.jdbc.Sql;
 
-import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 

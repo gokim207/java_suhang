@@ -6,6 +6,7 @@ import com.example.demo.domain.state.dto.request.StateUpdateReq;
 import com.example.demo.domain.state.repository.StateJpaRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -19,15 +20,18 @@ public class StateService {
         return stateJpaRepo.findAll();
     }
 
+    @Transactional
     public void updateMainState(Long stateId) {
-        // 1. 모든 isMain을 false로 일괄 업데이트
-        stateJpaRepo.updateAllIsMainToFalse();
-
-        // 2. 특정 ID만 true로 설정
-       stateJpaRepo.findById(stateId)
+        // 1. 대상 State가 존재하는지 먼저 확인
+        State targetState = stateJpaRepo.findById(stateId)
                 .orElseThrow(() -> new IllegalArgumentException("id가 정상적으로 입력되지 않았습니다."));
 
-        stateJpaRepo.updateIsMainById(stateId, true);
+        // 2. 모든 State 조회 후 isMain을 false로 설정
+        List<State> allStates = stateJpaRepo.findAll();
+        allStates.forEach(state -> state.setMain(false));
+
+        // 3. 대상 State만 true로 설정
+        targetState.setMain(true);
     }
 
     public void deleteState(Long stateId) {
