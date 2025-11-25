@@ -18,7 +18,7 @@ h2:
     enabled: true
 
 gemini:
-  api-key: gen-lang-client-0262587688
+  api-key: ${AI_API_KEY}
 
 resilience4j:
   retry:

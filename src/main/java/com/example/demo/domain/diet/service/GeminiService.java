@@ -17,7 +17,7 @@ import java.util.*;
 @Service
 public class GeminiService {
 
-    private final String GEMINI_MODEL = "gemini-1.5-flash";
+    private final String GEMINI_MODEL = "gemini-2.0-flash";
     private final String GEMINI_API_KEY;
     private final String GEMINI_API_URL;
 
@@ -29,6 +29,7 @@ public class GeminiService {
     private final Timeout<Object> timeout;
 
     public GeminiService(@Value("${gemini.api-key}") String apiKey) {
+        log.info("Gemini API KEY: {}", apiKey);
         this.GEMINI_API_KEY = apiKey;
         this.GEMINI_API_URL =
                 "https://generativelanguage.googleapis.com/v1beta/models/"
