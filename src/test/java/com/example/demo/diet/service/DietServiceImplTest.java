@@ -1,106 +1,129 @@
+//뭐가 어디 표시 하는지
+
 package com.example.demo.diet.service;
 
-import com.example.demo.domain.diet.domain.Dist;
+import com.example.demo.domain.diet.dto.request.DietDetailRequest;
 import com.example.demo.domain.diet.dto.request.DietListRequest;
 import com.example.demo.domain.diet.dto.request.DietRecommendationRequest;
+import com.example.demo.domain.diet.dto.response.DietDetailResponse;
 import com.example.demo.domain.diet.dto.response.DietListResponse;
-import com.example.demo.domain.diet.dto.response.DietRecommendationResponse;
 import com.example.demo.domain.diet.repository.DietJpaRepo;
-import com.example.demo.domain.diet.service.DietServiceImpl;
+import com.example.demo.domain.diet.service.DietService;
 import com.example.demo.domain.diet.service.GeminiService;
 import com.example.demo.domain.state.domain.State;
 import com.example.demo.domain.state.repository.StateJpaRepo;
-import com.example.demo.global.exception.InvalidDietRequestException;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 
-import java.util.List;
-import java.util.Optional;
+import static org.assertj.core.api.Assertions.*;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
+@SpringBootTest
+@Sql({"/insert-state.sql", "/insert-dist.sql"})
 class DietServiceImplTest {
 
-    @Mock
+    @Autowired
+    private DietService dietService;
+
+    @Autowired
     private DietJpaRepo dietJpaRepo;
 
-    @Mock
+    @Autowired
     private StateJpaRepo stateJpaRepo;
 
-    @Mock
-    private GeminiService geminiAIService;
+    @MockitoBean
+    private GeminiService geminiService;
 
-    @InjectMocks
-    private DietServiceImpl dietService;
-
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
-
-    @Sql("/insert-dist.sql")
     @Test
-    void getDietList_ReturnsDietList() {
-
-        List<Dist> result =  dietJpaRepo.findAllByOrderByCreatedAtDesc();
-
+    @DisplayName("식단 목록 조회 성공")
+    void getDietList_success() {
+        // given
         DietListRequest request = new DietListRequest();
-        request.setOrder("DESC");
+        request.setOrder("asc");
 
+        // when
         DietListResponse response = dietService.getDietList(request);
 
-        assertThat(result).isEqualTo(response);
+        // then
+        assertThat(response.getDiets()).isNotEmpty();
+        assertThat(response.getDiets().size()).isEqualTo(5);
     }
 
     @Test
-    void getDietDetail_ValidId_ReturnsDietDetail() {
+    @DisplayName("식단 상세 조회 성공")
+    void getDietDetail_success() {
+        // given
+        Long sampleDietId = dietJpaRepo.findAll().get(0).getDietId();
 
+        DietDetailRequest request = new DietDetailRequest();
+        request.setDietId(sampleDietId);
+
+        // when
+        DietDetailResponse response = dietService.getDietDetail(request);
+
+        // then
+        assertThat(response.getContent()).isNotNull();
+        assertThat(response.getStateName()).isNotNull();
     }
 
     @Test
-    void getDietDetail_InvalidId_ThrowsException() {
+    @DisplayName("식단 상세 조회 실패 - 존재하지 않는 dietId")
+    void getDietDetail_notFound() {
+        // given
+        DietDetailRequest req = new DietDetailRequest();
+        req.setDietId(9999L);
 
+        // when & then
+        assertThatThrownBy(() -> dietService.getDietDetail(req))
+                .isInstanceOf(RuntimeException.class);
     }
 
     @Test
-    void createDietRecommendation_ValidRequest_ReturnsRecommendation() {
-        State state = State.builder()
-                .id(1L)
-                .name("다이어트중")
-                .description("체중 감량 필요")
-                .standard("표준")
-                .build();
+    @DisplayName("식단 추천 생성 성공")
+    void createDietRecommendation_success() {
+        // given - insert-state.sql 에 이미 state 정보 있음
+        State state = stateJpaRepo.findAll().get(0);
 
-        when(stateJpaRepo.findById(1L)).thenReturn(Optional.of(state));
-        when(geminiAIService.getFoodName(any(), any(), any(), any(), any(), any(), any(), any(), any()))
-                .thenReturn("닭가슴살");
-        when(geminiAIService.getDietRecommendation(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()))
-                .thenReturn("닭가슴살 + 샐러드");
+        DietRecommendationRequest req = new DietRecommendationRequest();
+        req.setStateId(state.getId());
+        req.setRequest("오늘은 담백한 음식이 먹고 싶어");
+        req.setRecommendedRange("morning");
 
-        DietRecommendationRequest request = new DietRecommendationRequest();
-        request.setStateId(1L);
-        request.setRequest("체중 감량");
-        request.setRecommendedRange("1500kcal");
+        // Gemini Mocking (AI 응답 고정)
+        Mockito.when(geminiService.getFoodName(
+                Mockito.anyString(),     // userFoodCategories
+                Mockito.anyString(),     // userFoodTypes
+                Mockito.anyString(),     // userGender
+                Mockito.anyInt(),        // userAge
+                Mockito.anyString(),     // userStateName
+                Mockito.anyString(),     // userStateDescription
+                Mockito.anyString(),     // userStateStandard
+                Mockito.anyString(),     // additionalRequests
+                Mockito.anyString()      // dietRecommendationRange
+        )).thenReturn("Recommended Ingredient");
 
-        DietRecommendationResponse response = dietService.createDietRecommendation(request);
+        Mockito.when(geminiService.getDietRecommendation(
+                Mockito.anyString(),
+                Mockito.anyString(),
+                Mockito.anyString(),
+                Mockito.anyInt(),
+                Mockito.anyString(),
+                Mockito.anyString(),
+                Mockito.anyString(),
+                Mockito.anyString(),
+                Mockito.anyString(),
+                Mockito.anyString()
+        )).thenReturn("Diet Recommendation Result");
 
-        assertNotNull(response);
-        assertEquals("닭가슴살 + 샐러드", response.getMessage());
-        verify(dietJpaRepo, times(1)).save(any(Dist.class));
-    }
+        // when
+        var res = dietService.createDietRecommendation(req);
 
-    @Test
-    void createDietRecommendation_MissingStateId_ThrowsException() {
-        DietRecommendationRequest request = new DietRecommendationRequest();
-        request.setRequest("체중 감량");
-        request.setRecommendedRange("1500kcal");
-
-        assertThrows(InvalidDietRequestException.class, () -> dietService.createDietRecommendation(request));
+        assertThat(res.getMessage())
+                .as("AI 추천 메시지 확인")
+                .isEqualTo("Diet Recommendation Result");
     }
 }

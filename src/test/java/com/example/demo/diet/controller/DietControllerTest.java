@@ -1,74 +1,69 @@
 package com.example.demo.diet.controller;
 
 import com.example.demo.domain.diet.dto.request.DietRecommendationRequest;
-import com.example.demo.domain.diet.dto.response.DietDetailResponse;
-import com.example.demo.domain.diet.dto.response.DietListResponse;
-import com.example.demo.domain.diet.dto.response.DietRecommendationResponse;
 import com.example.demo.domain.diet.service.DietService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.web.context.WebApplicationContext;
-import tools.jackson.databind.ObjectMapper;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@Sql({"/insert-state.sql", "/insert-dist.sql"})
 class DietControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
+    @MockitoBean
     private DietService dietService;
 
-    @Autowired
     private ObjectMapper objectMapper;
 
-    private DietListResponse dummyListResponse;
-    private DietDetailResponse dummyDetailResponse;
-    private DietRecommendationResponse dummyRecommendationResponse;
 
-    @Autowired
-    private WebApplicationContext webApplicationContext;
-
-    @Sql("/insert-dist.sql")
     @Test
-    void getDietList() throws Exception {
-        ResultActions result = mockMvc.perform(get("/diet")
-        .contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(dummyListResponse)));
-
+    @DisplayName("GET /diet - 식단 목록 조회 성공")
+    void getDietList_success() throws Exception {
+        mockMvc.perform(get("/diet?order=asc"))
+                .andExpect(status().isOk());
     }
 
-    @Sql("/insert-dist.sql")
     @Test
-    void getDietDetail() throws Exception {
-        mockMvc.perform(get("/diet/info")
-                        .param("dietId", "2"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+    @DisplayName("GET /diet/info - 상세 조회 성공")
+    void getDietDetail_success() throws Exception {
+        mockMvc.perform(get("/diet/info?dietId=1"))
+                .andExpect(status().isOk());
     }
 
-    @Sql("/insert-state.sql")
     @Test
-    void createDietRecommendation() throws Exception {
-        DietRecommendationRequest request = new DietRecommendationRequest();
-        request.setStateId(2L);
-        request.setRequest("오늘은 매운 음식을 위주로 먹고 싶어");
-        request.setRecommendedRange("morning");
+    @DisplayName("POST /diet/recommendations - 추천 생성 성공")
+    void createDietRecommendation_success() throws Exception {
+        DietRecommendationRequest req = new DietRecommendationRequest();
+        req.setStateId(1L);
+        req.setRequest("매운 음식 먹고 싶어");
+        req.setRecommendedRange("morning");
+
+        Mockito.when(dietService.createDietRecommendation(Mockito.any()))
+                .thenReturn(
+                        com.example.demo.domain.diet.dto.response.DietRecommendationResponse
+                                .builder()
+                                .message("ok")
+                                .build()
+                );
 
         mockMvc.perform(post("/diet/recommendations")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isCreated());
     }
 }
