@@ -2,7 +2,6 @@ package com.example.demo.diet.controller;
 
 import com.example.demo.domain.diet.dto.request.DietRecommendationRequest;
 import com.example.demo.domain.diet.service.DietService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -13,13 +12,14 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
+import tools.jackson.databind.ObjectMapper;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@Sql({"/insert-state.sql", "/insert-dist.sql"})
+@Sql({"/insert-state.sql", "/insert-diet.sql"})
 class DietControllerTest {
 
     @Autowired
@@ -28,8 +28,8 @@ class DietControllerTest {
     @MockitoBean
     private DietService dietService;
 
+    @Autowired
     private ObjectMapper objectMapper;
-
 
     @Test
     @DisplayName("GET /diet - 식단 목록 조회 성공")
