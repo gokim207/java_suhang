@@ -41,3 +41,6 @@ src/main/resources/application.yml
 
 ### 환경병수 유출 방지용 test 파일 등록###
 src/test/resources/
+
+# macOS
+.DS_Store
