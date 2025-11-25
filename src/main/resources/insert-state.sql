@@ -1,4 +1,4 @@
-INSERT INTO state (name, description, standard, isMain)
+INSERT INTO state (name, description, standard, is_Main)
 VALUES
     ('거지 다이어트', '최소한의 식사로 진행하는 다이어트', '3일 이상 최소 식사', false),
     ('3주 다이어트', '3주 동안 집중적으로 진행하는 다이어트', '3주간 식단과 운동 병행', false),
