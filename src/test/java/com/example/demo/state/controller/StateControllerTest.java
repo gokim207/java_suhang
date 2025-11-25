@@ -24,7 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
-@Sql("classpath:/insert-state.sql")
+@Sql(scripts = "/insert-state.sql")
 class StateControllerTest {
 
     @Autowired
