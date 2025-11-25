@@ -4,6 +4,7 @@ import com.example.demo.diet.dto.exception.DietAIException;
 import dev.failsafe.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 
@@ -16,9 +17,11 @@ import java.util.concurrent.Callable;
 
 @Slf4j
 @Service
+@ConfigurationProperties(prefix = "key")
 public class GeminiService {
+    private String apiKey;
 
-    private final String GEMINI_MODEL = "gemini-1.5-flash";
+    private final String GEMINI_MODEL = "gemini-2.5-flash";
     private final String GEMINI_API_KEY;
     private final String GEMINI_API_URL;
 
@@ -186,6 +189,7 @@ public class GeminiService {
      * - Failsafe v3 기반: Retry + CircuitBreaker + Timeout 적용
      */
     private String callGeminiAPI(String prompt) {
+        log.info("Gemini API Key: {}", GEMINI_API_KEY);
         // 요청 Body
         Map<String, Object> requestBody = new HashMap<>();
         Map<String, Object> content = new HashMap<>();
@@ -199,7 +203,9 @@ public class GeminiService {
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
 
-        // 핵심 API 호출
+        log.info("Gemini API 호출 시작, URL: {}", GEMINI_API_URL);
+        log.debug("Request Body: {}", requestBody);  // 디버그 레벨로 prompt 전체 출력
+
         CheckedSupplier<String> apiCall = () -> {
             ResponseEntity<Map> response = restTemplate.exchange(
                     GEMINI_API_URL,
@@ -208,24 +214,36 @@ public class GeminiService {
                     Map.class
             );
 
+            log.info("Gemini API 응답 상태 코드: {}", response.getStatusCode());
+            log.debug("응답 본문: {}", response.getBody());
+
             Map<String, Object> body = response.getBody();
-            if (body == null) throw new DietAIException("Gemini API 응답이 null");
+            if (body == null) {
+                log.error("Gemini API 응답이 null");
+                throw new DietAIException("Gemini API 응답이 null");
+            }
 
             List<Map<String, Object>> candidates = (List<Map<String, Object>>) body.get("candidates");
-            if (candidates == null || candidates.isEmpty())
+            if (candidates == null || candidates.isEmpty()) {
+                log.error("Gemini API candidates 비어 있음");
                 throw new DietAIException("Gemini API candidates 비어 있음");
+            }
 
             Map<String, Object> first = candidates.get(0);
             Map<String, Object> contentMap = (Map<String, Object>) first.get("content");
             List<Map<String, Object>> parts = (List<Map<String, Object>>) contentMap.get("parts");
 
-            return (String) parts.get(0).get("text");
+            String resultText = (String) parts.get(0).get("text");
+            log.info("Gemini API 결과 텍스트 길이: {}", resultText.length());
+            log.debug("결과 텍스트: {}", resultText);
+
+            return resultText;
         };
 
         try {
             // Failsafe 적용 (Timeout + CircuitBreaker + Retry)
             return Failsafe.with(timeout, circuitBreaker, retryPolicy)
-                    .get(apiCall);  // 실패하면 예외 발생
+                    .get(apiCall);
 
         } catch (dev.failsafe.TimeoutExceededException e) {
             log.error("Timeout 발생", e);

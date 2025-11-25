@@ -169,7 +169,7 @@ public class DietServiceImpl implements DietService {
                 throw new DietServerException("ai 오류로 인하여 식단 추천에 실패하였습니다.");
             }
 
-            throw new DietServerException("서버 내부 오류로 인하여 식단 추천에 실패하였습니다.");
+            throw new DietServerException("서버 내부 오류로 인하여 식단 추천에 실패하였습니다." + e);
         }
     }
 
