@@ -1,9 +1,9 @@
 package com.example.demo.state.controller;
 
-import com.example.demo.state.domain.State;
-import com.example.demo.state.dto.request.StateCreateReq;
-import com.example.demo.state.dto.request.StateUpdateReq;
-import com.example.demo.state.repository.StateJpaRepo;
+import com.example.demo.domain.state.domain.State;
+import com.example.demo.domain.state.dto.request.StateCreateReq;
+import com.example.demo.domain.state.dto.request.StateUpdateReq;
+import com.example.demo.domain.state.repository.StateJpaRepo;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
