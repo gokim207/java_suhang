@@ -1,4 +1,4 @@
-DELETE FROM dist;
+DELETE FROM diet;
 
 INSERT INTO diet (
     diet_content,

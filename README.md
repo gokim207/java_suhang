@@ -73,7 +73,7 @@ java_suhang
    │  │                 └─ StateService.java
    │  └─ resources
    │     ├─ application.yml
-   │     ├─ insert-dist.sql
+   │     ├─ insert-diet.sql
    │     └─ insert-state.sql
    └─ test
       └─ java

@@ -23,7 +23,7 @@ import org.springframework.test.context.jdbc.Sql;
 import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
-@Sql({"/insert-state.sql", "/insert-dist.sql"})
+@Sql({"/insert-state.sql", "/insert-diet.sql"})
 class DietServiceImplTest {
 
     @Autowired
