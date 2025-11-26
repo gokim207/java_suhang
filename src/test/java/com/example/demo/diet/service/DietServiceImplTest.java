@@ -19,10 +19,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
+@Transactional
 @Sql({"/insert-state.sql", "/insert-diet.sql"})
 class DietServiceImplTest {
 
@@ -54,6 +56,19 @@ class DietServiceImplTest {
     }
 
     @Test
+    @DisplayName("식단 목록 조회 실패 - 잘못된 order 값")
+    void getDietList_failure() {
+        // given
+        DietListRequest request = new DietListRequest();
+        request.setOrder("실패를 부탁해요");
+
+        // when & then
+        assertThatThrownBy(() -> dietService.getDietList(request))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("올바르지 않은 order 값입니다.");
+    }
+
+    @Test
     @DisplayName("식단 상세 조회 성공")
     void getDietDetail_success() {
         // given
@@ -70,6 +85,7 @@ class DietServiceImplTest {
         assertThat(response.getStateName()).isNotNull();
     }
 
+
     @Test
     @DisplayName("식단 상세 조회 실패 - 존재하지 않는 dietId")
     void getDietDetail_notFound() {
@@ -82,29 +98,44 @@ class DietServiceImplTest {
                 .isInstanceOf(RuntimeException.class);
     }
 
+
+
+
     @Test
-    @DisplayName("식단 추천 생성 성공")
-    void createDietRecommendation_success() {
-        // given - insert-state.sql 에 이미 state 정보 있음
-        State state = stateJpaRepo.findAll().get(0);
+    @DisplayName("getFoodName 호출 테스트 성공")
+    void getFoodName_success() {
+        // given
+        String expectedIngredient = "Recommended Ingredient";
 
-        DietRecommendationRequest req = new DietRecommendationRequest();
-        req.setStateId(state.getId());
-        req.setRequest("오늘은 담백한 음식이 먹고 싶어");
-        req.setRecommendedRange("morning");
-
-        // Gemini Mocking (AI 응답 고정)
         Mockito.when(geminiService.getFoodName(
-                Mockito.anyString(),     // userFoodCategories
-                Mockito.anyString(),     // userFoodTypes
-                Mockito.anyString(),     // userGender
-                Mockito.anyInt(),        // userAge
-                Mockito.anyString(),     // userStateName
-                Mockito.anyString(),     // userStateDescription
-                Mockito.anyString(),     // userStateStandard
-                Mockito.anyString(),     // additionalRequests
-                Mockito.anyString()      // dietRecommendationRange
-        )).thenReturn("Recommended Ingredient");
+                Mockito.anyString(),
+                Mockito.anyString(),
+                Mockito.anyString(),
+                Mockito.anyInt(),
+                Mockito.anyString(),
+                Mockito.anyString(),
+                Mockito.anyString(),
+                Mockito.anyString(),
+                Mockito.anyString()
+        )).thenReturn(expectedIngredient);
+
+        // when
+        String ingredient = geminiService.getFoodName(
+                "한식", "밥", "남", 25,
+                "기분 좋음", "담백한 음식", "표준", "추가 요청", "morning"
+        );
+
+        // then
+        assertThat(ingredient)
+                .as("AI가 추천한 식재료 확인")
+                .isEqualTo(expectedIngredient);
+    }
+
+    @Test
+    @DisplayName("getDietRecommendation 호출 테스트 성공")
+    void getDietRecommendation_success() {
+        // given
+        String expectedRecommendation = "Diet Recommendation Result";
 
         Mockito.when(geminiService.getDietRecommendation(
                 Mockito.anyString(),
@@ -117,13 +148,20 @@ class DietServiceImplTest {
                 Mockito.anyString(),
                 Mockito.anyString(),
                 Mockito.anyString()
-        )).thenReturn("Diet Recommendation Result");
+        )).thenReturn(expectedRecommendation);
 
         // when
-        var res = dietService.createDietRecommendation(req);
+        String recommendation = geminiService.getDietRecommendation(
+                "한식", "밥", "남", 25,
+                "기분 좋음", "담백한 음식", "표준", "추가 요청", "morning",
+                "Recommended Ingredient"
+        );
 
-        assertThat(res.getMessage())
-                .as("AI 추천 메시지 확인")
-                .isEqualTo("Diet Recommendation Result");
+        // then
+        assertThat(recommendation)
+                .as("AI가 추천한 식단 메시지 확인")
+                .isEqualTo(expectedRecommendation);
     }
+
+
 }

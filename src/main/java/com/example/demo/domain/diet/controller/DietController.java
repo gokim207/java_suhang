@@ -37,8 +37,7 @@ public class DietController {
         DietListRequest request = new DietListRequest();
         request.setOrder(order);
 
-        DietListResponse response = dietService.getDietList(request);
-
+        DietListResponse response = dietService.getDietList(request); // 잘못된 값이면 여기서 예외 발생
         return ResponseEntity.ok(response);
     }
 

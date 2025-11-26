@@ -1,5 +1,3 @@
-DELETE FROM diet;
-
 INSERT INTO diet (
     diet_content,
     diet_name,

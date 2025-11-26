@@ -1,5 +1,3 @@
-DELETE FROM state;
-
 INSERT INTO state (name, description, standard, is_Main)
 VALUES
     ('거지 다이어트', '최소한의 식사로 진행하는 다이어트', '3일 이상 최소 식사', false),

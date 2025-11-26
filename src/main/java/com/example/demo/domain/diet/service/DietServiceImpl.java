@@ -17,11 +17,14 @@ import com.example.demo.domain.state.domain.State;
 import com.example.demo.domain.state.repository.StateJpaRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -42,30 +45,25 @@ public class DietServiceImpl implements DietService {
      */
     @Override
     public DietListResponse getDietList(DietListRequest request) {
+        SortOrder sortOrder;
         try {
-            SortOrder sortOrder = validateAndParseSortOrder(request.getOrder());
-
-            List<Dist> diets = sortOrder == SortOrder.ASC
-                    ? dietJpaRepo.findAllByOrderByCreatedAtAsc()
-                    : dietJpaRepo.findAllByOrderByCreatedAtDesc();
-
-            List<DietListItem> dietListItems = diets.stream()
-                    .map(this::convertToDietListItem)
-                    .collect(Collectors.toList());
-
-            return DietListResponse.builder()
-                    .diets(dietListItems)
-                    .build();
-
+            sortOrder = validateAndParseSortOrder(request.getOrder());
         } catch (IllegalArgumentException e) {
-            log.error("Invalid order parameter: {}", request.getOrder(), e);
-            throw new InvalidDietRequestException("order가 정상적으로 입력되지 않았습니다");
-        } catch (Exception e) {
-            log.error("Failed to retrieve diet list", e);
-            throw new DietServerException("서버 내부 오류로 인하여 메인상태 변경에 실패하였습니다.");
+            throw new IllegalArgumentException("올바르지 않은 order 값입니다.");
         }
-    }
 
+        List<Dist> diets = sortOrder == SortOrder.ASC
+                ? dietJpaRepo.findAllByOrderByCreatedAtAsc()
+                : dietJpaRepo.findAllByOrderByCreatedAtDesc();
+
+        List<DietListItem> dietListItems = diets.stream()
+                .map(this::convertToDietListItem)
+                .collect(Collectors.toList());
+
+        return DietListResponse.builder()
+                .diets(dietListItems)
+                .build();
+    }
     /**
      * 메인화면 - 식단정보 상세조회
      */
@@ -90,7 +88,7 @@ public class DietServiceImpl implements DietService {
     }
 
     /**
-     * 식단 추천 생성 (아직 State 부분에 개발되지 않아 오류 있음)
+     * 식단 추천 생성
      */
     @Override
     @Transactional
@@ -178,10 +176,11 @@ public class DietServiceImpl implements DietService {
      * order가 null이거나 빈 값이면 기본값(DESC) 반환
      */
     private SortOrder validateAndParseSortOrder(String order) {
-        if (order == null || order.trim().isEmpty()) {
-            return SortOrder.DESC;
+        try {
+            return SortOrder.valueOf(order.toUpperCase());
+        } catch (Exception e) {
+            throw new IllegalArgumentException("올바르지 않은 order 값입니다.");
         }
-        return SortOrder.fromCode(order);
     }
 
     /**
