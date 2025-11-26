@@ -4,13 +4,11 @@ package com.example.demo.diet.service;
 
 import com.example.demo.domain.diet.dto.request.DietDetailRequest;
 import com.example.demo.domain.diet.dto.request.DietListRequest;
-import com.example.demo.domain.diet.dto.request.DietRecommendationRequest;
 import com.example.demo.domain.diet.dto.response.DietDetailResponse;
 import com.example.demo.domain.diet.dto.response.DietListResponse;
 import com.example.demo.domain.diet.repository.DietJpaRepo;
 import com.example.demo.domain.diet.service.DietService;
 import com.example.demo.domain.diet.service.GeminiService;
-import com.example.demo.domain.state.domain.State;
 import com.example.demo.domain.state.repository.StateJpaRepo;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
