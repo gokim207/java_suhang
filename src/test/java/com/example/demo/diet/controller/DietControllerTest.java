@@ -1,10 +1,10 @@
 package com.example.demo.diet.controller;
 
-import com.example.demo.diet.dto.request.DietRecommendationRequest;
-import com.example.demo.diet.dto.response.DietDetailResponse;
-import com.example.demo.diet.dto.response.DietListResponse;
-import com.example.demo.diet.dto.response.DietRecommendationResponse;
-import com.example.demo.diet.service.DietService;
+import com.example.demo.domain.diet.dto.request.DietRecommendationRequest;
+import com.example.demo.domain.diet.dto.response.DietDetailResponse;
+import com.example.demo.domain.diet.dto.response.DietListResponse;
+import com.example.demo.domain.diet.dto.response.DietRecommendationResponse;
+import com.example.demo.domain.diet.service.DietService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,11 +14,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import tools.jackson.databind.ObjectMapper;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -46,8 +44,9 @@ class DietControllerTest {
     @Test
     void getDietList() throws Exception {
         ResultActions result = mockMvc.perform(get("/diet")
-        .contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(dummyListResponse)));
-
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dummyListResponse)))
+                .andExpect(status().isOk());
     }
 
     @Sql("/insert-dist.sql")
